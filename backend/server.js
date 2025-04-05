@@ -19,8 +19,12 @@ app.post("/webhooks/authorize", async (req, res) => {
     console.log("🔥 Webhook Triggered!");
     console.log("📦 Full Body:", req.body);
 
-    const data = req.body.data;
-    const store_id = data.store_id || req.body.merchant;
+    const data = req.body?.data;
+const store_id = data?.store_id || req.body?.merchant;
+
+console.log("🧪 Parsed store_id:", store_id);
+console.log("🧪 Parsed access_token:", data?.access_token);
+
 
     if (!data || !data.access_token) {
       console.log("❌ Missing access_token in webhook!");
