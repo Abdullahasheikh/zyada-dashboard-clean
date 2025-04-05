@@ -88,6 +88,26 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
+// ✅ API: عرض المتاجر المتصلة
+app.get("/api/connected-stores", async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db("zyada");
+    const stores = db.collection("connected_stores");
+
+    const result = await stores
+      .find({ access_token: { $exists: true } })
+      .sort({ connected_at: -1 })
+      .limit(100)
+      .toArray();
+
+    res.json(result);
+  } catch (err) {
+    console.error("❌ Error fetching connected stores:", err);
+    res.status(500).json({ error: "Failed to fetch connected stores" });
+  }
+});
+
 // الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.send("🚀 Webhook + MongoDB unified server is running.");
