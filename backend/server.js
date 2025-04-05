@@ -16,31 +16,29 @@ const client = new MongoClient(mongoUri);
 // Webhook: استلام التوكن عند التثبيت
 app.post("/webhooks/authorize", async (req, res) => {
   try {
-    console.log("🔥 Webhook Triggered!");
-    console.log("📦 Full Body:", req.body);
+    console.log("🔥 Webhook Triggered: /webhooks/authorize");
+    console.log("📦 Full Body:", JSON.stringify(req.body, null, 2));
 
     const data = req.body?.data;
-const store_id = data?.store_id || req.body?.merchant;
+    const store_id = data?.store_id || req.body?.merchant;
 
-console.log("🧪 Parsed store_id:", store_id);
-console.log("🧪 Parsed access_token:", data?.access_token);
+    console.log("🧪 Parsed store_id:", store_id);
+    console.log("🧪 Parsed access_token:", data?.access_token);
 
-
-    if (!data || !data.access_token) {
-      console.log("❌ Missing access_token in webhook!");
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!data || !data.access_token || !store_id) {
+      console.log("❌ Missing access_token or store_id");
+      return res.status(400).json({ error: "Missing access_token or store_id" });
     }
 
     console.log("✅ Access Token:", data.access_token);
     console.log("🔁 Refresh Token:", data.refresh_token);
     console.log("🛍️ Store ID:", store_id);
 
-    // تخزين البيانات في MongoDB
     await client.connect();
     const db = client.db("zyada");
     const stores = db.collection("connected_stores");
 
-    await stores.updateOne(
+    const result = await stores.updateOne(
       { store_id },
       {
         $set: {
@@ -55,10 +53,11 @@ console.log("🧪 Parsed access_token:", data?.access_token);
     );
 
     console.log("✅ Store data saved to MongoDB");
+    console.log("🧾 MongoDB Response:", result);
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("❌ Error handling webhook:", err);
+    console.error("❌ Error handling /webhooks/authorize:", err);
     res.sendStatus(500);
   }
 });
@@ -112,10 +111,12 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
+// الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.send("🚀 Webhook + MongoDB server is running.");
 });
 
+// تشغيل السيرفر
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
