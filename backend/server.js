@@ -20,7 +20,8 @@ app.post("/webhooks/authorize", async (req, res) => {
     console.log("📦 Full Body:", JSON.stringify(req.body, null, 2));
 
     const data = req.body?.data;
-    const store_id = data?.store_id || req.body?.merchant;
+    const store_id = req.body?.merchant || data?.store_id;
+
 
     console.log("🧪 Parsed store_id:", store_id);
     console.log("🧪 Parsed access_token:", data?.access_token);
