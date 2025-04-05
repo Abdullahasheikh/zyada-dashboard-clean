@@ -68,7 +68,7 @@ app.post("/webhooks/events", async (req, res) => {
   }
 });
 
-// API: عرض آخر الأحداث من قاعدة البيانات
+// ✅ API: عرض جميع الأحداث
 app.get("/api/events", async (req, res) => {
   try {
     await client.connect();
@@ -108,11 +108,35 @@ app.get("/api/connected-stores", async (req, res) => {
   }
 });
 
+// ✅ API: عرض الأحداث الخاصة بمتجر معيّن
+app.get("/api/store/:store_id/events", async (req, res) => {
+  try {
+    const store_id = Number(req.params.store_id);
+    if (!store_id) return res.status(400).json({ error: "Store ID is required" });
+
+    await client.connect();
+    const db = client.db("zyada");
+    const logs = db.collection("webhook_logs");
+
+    const events = await logs
+      .find({ merchant: store_id })
+      .sort({ received_at: -1 })
+      .limit(50)
+      .toArray();
+
+    res.json(events);
+  } catch (err) {
+    console.error("❌ Error fetching store events:", err);
+    res.status(500).json({ error: "Failed to fetch store events" });
+  }
+});
+
 // الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.send("🚀 Webhook + MongoDB unified server is running.");
 });
 
+// تشغيل السيرفر
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
